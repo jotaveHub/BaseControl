@@ -27,17 +27,40 @@ export const useInventoryStore = create<InventoryState>((set) => ({
     { id: 'e2', name: 'Maria Souza', role: 'Gerente de Estoque' },
   ],
   addProduct: (product) => set((state) => ({
-    products: [...state.products, { ...product, id: crypto.randomUUID() }]
+    products: [...state.products, { ...product, id: crypto.randomUUID(), stock: 0 }]
   })),
   deleteProduct: (id) => set((state) => ({
     products: state.products.filter(p => p.id !== id)
   })),
-  addMovement: (movement) => set((state) => ({
-    movements: [...state.movements, { ...movement, id: crypto.randomUUID() }]
-  })),
-  deleteMovement: (id) => set((state) => ({
-    movements: state.movements.filter(m => m.id !== id)
-  })),
+  addMovement: (movement) => set((state) => {
+    const { type, quantity, productId } = movement;
+    let stockChange = 0;
+    if (type === 'purchase' || type === 'return') stockChange = quantity;
+    else if (type === 'sale' || type === 'adjustment') stockChange = -quantity;
+
+    return {
+      movements: [...state.movements, { ...movement, id: crypto.randomUUID() }],
+      products: state.products.map(p =>
+        p.id === productId ? { ...p, stock: p.stock + stockChange } : p
+      )
+    };
+  }),
+  deleteMovement: (id) => set((state) => {
+    const movement = state.movements.find(m => m.id === id);
+    if (!movement) return state;
+
+    const { type, quantity, productId } = movement;
+    let stockChange = 0;
+    if (type === 'purchase' || type === 'return') stockChange = -quantity;
+    else if (type === 'sale' || type === 'adjustment') stockChange = quantity;
+
+    return {
+      movements: state.movements.filter(m => m.id !== id),
+      products: state.products.map(p =>
+        p.id === productId ? { ...p, stock: p.stock + stockChange } : p
+      )
+    };
+  }),
   addEmployee: (employee) => set((state) => ({
     employees: [...state.employees, { ...employee, id: crypto.randomUUID() }]
   })),
