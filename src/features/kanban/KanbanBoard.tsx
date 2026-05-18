@@ -7,14 +7,17 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { TaskStatus } from '../../types';
+import { TaskStatus, Task } from '../../types';
 import { KanbanColumn } from './KanbanColumn';
+import { KanbanCard } from './KanbanCard';
 import { useKanbanStore } from '../../store/useKanbanStore';
 import { Button, Modal, Input } from '../../components/ui';
 import { Plus } from 'lucide-react';
@@ -23,6 +26,7 @@ export const KanbanBoard = () => {
   const { tasks, moveTask, addTask } = useKanbanStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newTaskContent, setNewTaskContent] = useState('');
+  const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -31,12 +35,18 @@ export const KanbanBoard = () => {
       },
     }),
     useSensor(KeyboardSensor, {
-      coordinateGetting: sortableKeyboardCoordinates,
+      coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    const task = tasks.find(t => t.id === event.active.id);
+    setActiveTask(task || null);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    setActiveTask(null);
     if (!over) return;
 
     const activeId = active.id as string;
@@ -45,7 +55,6 @@ export const KanbanBoard = () => {
     const task = tasks.find(t => t.id === activeId);
     if (!task) return;
 
-    // If the overId is a column ID
     const statusMap: Record<string, TaskStatus> = {
       todo: 'todo',
       doing: 'doing',
@@ -55,7 +64,6 @@ export const KanbanBoard = () => {
     if (statusMap[overId]) {
       moveTask(activeId, statusMap[overId]);
     } else {
-      // The overId is another card. We move the task to the status of the over-card.
       const overTask = tasks.find(t => t.id === overId);
       if (overTask) {
         moveTask(activeId, overTask.status);
@@ -92,6 +100,7 @@ export const KanbanBoard = () => {
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
+        onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <div className="flex gap-6 h-full items-start overflow-x-auto pb-4">
@@ -104,13 +113,20 @@ export const KanbanBoard = () => {
             />
           ))}
         </div>
+
+        <DragOverlay dropAnimation={{
+          duration: 200,
+          easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+        }}>
+          {activeTask ? (
+            <div style={{ transform: 'rotate(2deg)', opacity: 0.95 }}>
+              <KanbanCard task={activeTask} isDragging />
+            </div>
+          ) : null}
+        </DragOverlay>
       </DndContext>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Nova Tarefa"
-      >
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Nova Tarefa">
         <div className="space-y-4">
           <Input
             label="O que precisa ser feito?"
@@ -121,12 +137,8 @@ export const KanbanBoard = () => {
             autoFocus
           />
           <div className="flex justify-end gap-3">
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleAddTask}>
-              Adicionar
-            </Button>
+            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>Cancelar</Button>
+            <Button onClick={handleAddTask}>Adicionar</Button>
           </div>
         </div>
       </Modal>

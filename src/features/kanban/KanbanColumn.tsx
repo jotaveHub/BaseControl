@@ -12,7 +12,7 @@ interface KanbanColumnProps {
 }
 
 export const KanbanColumn = ({ id, title, tasks }: KanbanColumnProps) => {
-  const { setNodeRef } = useDroppable({ id });
+  const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
     <div className="flex flex-col w-80 shrink-0 h-full">
@@ -30,7 +30,12 @@ export const KanbanColumn = ({ id, title, tasks }: KanbanColumnProps) => {
       </div>
       <div
         ref={setNodeRef}
-        className="flex-1 overflow-y-auto space-y-3 p-3 rounded-xl bg-gray-200/40 border-2 border-dashed border-gray-300 shadow-inner min-h-[150px] transition-colors hover:bg-gray-200/60"
+        className={cn(
+          'flex-1 overflow-y-auto space-y-3 p-3 rounded-xl border-2 border-dashed shadow-inner min-h-[150px] transition-colors',
+          isOver
+            ? 'bg-blue-100/60 border-blue-400'
+            : 'bg-gray-200/40 border-gray-300 hover:bg-gray-200/60'
+        )}
       >
         <SortableContext items={tasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
           {tasks.map(task => (
