@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useInventoryStore } from '../../store/useInventoryStore';
+import { useFinanceStore } from '../../store/useFinanceStore';
 import { Button, Input, Card, Modal, cn } from '../../components/ui';
-import { Plus, Trash2, Package, ArrowUpDown } from 'lucide-react';
-import { Product, Movement, MovementType } from '../../types';
+import { Plus, Trash2 } from 'lucide-react';
+import { MovementType } from '../../types';
 
 export const InventoryDashboard = () => {
   const { products, movements, employees, addProduct, deleteProduct, addMovement, deleteMovement } = useInventoryStore();
+  const { addRecord } = useFinanceStore();
   const [activeTab, setActiveTab] = useState<'products' | 'movements'>('products');
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isMovementModalOpen, setIsMovementModalOpen] = useState(false);
@@ -17,6 +19,7 @@ export const InventoryDashboard = () => {
     type: 'purchase' as MovementType,
     quantity: 0,
     employeeId: employees[0]?.id || '',
+    paymentMethod: 'PIX',
   });
 
   const handleAddProduct = () => {
@@ -29,13 +32,30 @@ export const InventoryDashboard = () => {
 
   const handleAddMovement = () => {
     if (movementForm.productId && movementForm.quantity !== 0) {
-      addMovement(movementForm);
+      const { paymentMethod, ...movementData } = movementForm;
+      addMovement(movementData);
+
+      if (movementForm.type === 'sale') {
+        const product = products.find(p => p.id === movementForm.productId);
+        if (product) {
+          const totalValue = product.sellingPrice * movementForm.quantity;
+          addRecord({
+            date: movementForm.date,
+            description: `Venda - ${product.name} (x${movementForm.quantity})`,
+            value: totalValue,
+            product: product.name,
+            paymentMethod: movementForm.paymentMethod,
+          });
+        }
+      }
+
       setMovementForm({
         productId: '',
         date: new Date().toISOString().split('T')[0],
         type: 'purchase',
         quantity: 0,
         employeeId: employees[0]?.id || '',
+        paymentMethod: 'PIX',
       });
       setIsMovementModalOpen(false);
     }
@@ -160,39 +180,19 @@ export const InventoryDashboard = () => {
         </div>
       )}
 
-      <Modal
-        isOpen={isProductModalOpen}
-        onClose={() => setIsProductModalOpen(false)}
-        title="Novo Produto"
-      >
+      <Modal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} title="Novo Produto">
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Código Identificador"
-              placeholder="Ex: PROD001"
-              value={productForm.code}
-              onChange={(e) => setProductForm({ ...productForm, code: e.target.value })}
-            />
-            <Input
-              label="Nome do Produto"
-              placeholder="Ex: Teclado Mecânico"
-              value={productForm.name}
-              onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-            />
+            <Input label="Código Identificador" placeholder="Ex: PROD001" value={productForm.code}
+              onChange={(e) => setProductForm({ ...productForm, code: e.target.value })} />
+            <Input label="Nome do Produto" placeholder="Ex: Teclado Mecânico" value={productForm.name}
+              onChange={(e) => setProductForm({ ...productForm, name: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Valor de Custo (R$)"
-              type="number"
-              value={productForm.cost}
-              onChange={(e) => setProductForm({ ...productForm, cost: parseFloat(e.target.value) || 0 })}
-            />
-            <Input
-              label="Preço de Venda (R$)"
-              type="number"
-              value={productForm.sellingPrice}
-              onChange={(e) => setProductForm({ ...productForm, sellingPrice: parseFloat(e.target.value) || 0 })}
-            />
+            <Input label="Valor de Custo (R$)" type="number" value={productForm.cost}
+              onChange={(e) => setProductForm({ ...productForm, cost: parseFloat(e.target.value) || 0 })} />
+            <Input label="Preço de Venda (R$)" type="number" value={productForm.sellingPrice}
+              onChange={(e) => setProductForm({ ...productForm, sellingPrice: parseFloat(e.target.value) || 0 })} />
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="secondary" onClick={() => setIsProductModalOpen(false)}>Cancelar</Button>
@@ -201,11 +201,7 @@ export const InventoryDashboard = () => {
         </div>
       </Modal>
 
-      <Modal
-        isOpen={isMovementModalOpen}
-        onClose={() => setIsMovementModalOpen(false)}
-        title="Registrar Movimentação"
-      >
+      <Modal isOpen={isMovementModalOpen} onClose={() => setIsMovementModalOpen(false)} title="Registrar Movimentação">
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5 w-full">
@@ -219,12 +215,8 @@ export const InventoryDashboard = () => {
                 {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
-            <Input
-              label="Data"
-              type="date"
-              value={movementForm.date}
-              onChange={(e) => setMovementForm({ ...movementForm, date: e.target.value })}
-            />
+            <Input label="Data" type="date" value={movementForm.date}
+              onChange={(e) => setMovementForm({ ...movementForm, date: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5 w-full">
@@ -240,24 +232,57 @@ export const InventoryDashboard = () => {
                 <option value="adjustment">Ajuste (Perda)</option>
               </select>
             </div>
-            <Input
-              label="Quantidade"
-              type="number"
-              value={movementForm.quantity}
-              onChange={(e) => setMovementForm({ ...movementForm, quantity: parseInt(e.target.value) || 0 })}
-            />
+            <Input label="Quantidade" type="number" value={movementForm.quantity}
+              onChange={(e) => setMovementForm({ ...movementForm, quantity: parseInt(e.target.value) || 0 })} />
           </div>
-          <div className="flex flex-col gap-1.5 w-full">
-            <label className="text-sm font-medium text-gray-700">Responsável</label>
-            <select
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              value={movementForm.employeeId}
-              onChange={(e) => setMovementForm({ ...movementForm, employeeId: e.target.value })}
-            >
-              <option value="">Selecione o funcionário</option>
-              {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-            </select>
+
+          {movementForm.type === 'sale' && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-xs font-semibold text-blue-700 mb-1">💡 Venda detectada — será lançada automaticamente no financeiro</p>
+              {movementForm.productId && movementForm.quantity > 0 && (() => {
+                const product = products.find(p => p.id === movementForm.productId);
+                if (!product) return null;
+                const total = product.sellingPrice * movementForm.quantity;
+                return (
+                  <p className="text-sm text-blue-600">
+                    Valor a registrar: <strong>R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
+                    &nbsp;({movementForm.quantity}x R$ {product.sellingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})
+                  </p>
+                );
+              })()}
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5 w-full">
+              <label className="text-sm font-medium text-gray-700">Responsável</label>
+              <select
+                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={movementForm.employeeId}
+                onChange={(e) => setMovementForm({ ...movementForm, employeeId: e.target.value })}
+              >
+                <option value="">Selecione o funcionário</option>
+                {employees.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
+              </select>
+            </div>
+            {movementForm.type === 'sale' && (
+              <div className="flex flex-col gap-1.5 w-full">
+                <label className="text-sm font-medium text-gray-700">Forma de Pagamento</label>
+                <select
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={movementForm.paymentMethod}
+                  onChange={(e) => setMovementForm({ ...movementForm, paymentMethod: e.target.value })}
+                >
+                  <option value="PIX">PIX</option>
+                  <option value="Cartão de Crédito">Cartão de Crédito</option>
+                  <option value="Cartão de Débito">Cartão de Débito</option>
+                  <option value="Dinheiro">Dinheiro</option>
+                  <option value="Boleto">Boleto</option>
+                </select>
+              </div>
+            )}
           </div>
+
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="secondary" onClick={() => setIsMovementModalOpen(false)}>Cancelar</Button>
             <Button onClick={handleAddMovement}>Registrar</Button>
