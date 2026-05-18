@@ -111,6 +111,7 @@ export const InventoryDashboard = () => {
                 <tr>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Código</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Nome</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-center">Estoque</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Custo (R$)</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-right">Venda (R$)</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-center">Ações</th>
@@ -121,6 +122,7 @@ export const InventoryDashboard = () => {
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 text-sm font-mono text-gray-600">{p.code}</td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-800">{p.name}</td>
+                    <td className="px-6 py-4 text-sm text-center font-bold text-gray-800">{p.stock}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">R$ {p.cost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td className="px-6 py-4 text-sm font-bold text-right text-green-600">R$ {p.sellingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td className="px-6 py-4 text-center">
