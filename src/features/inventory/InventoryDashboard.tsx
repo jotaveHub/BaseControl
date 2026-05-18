@@ -17,7 +17,7 @@ export const InventoryDashboard = () => {
     productId: '',
     date: new Date().toISOString().split('T')[0],
     type: 'purchase' as MovementType,
-    quantity: 0,
+    quantity: '',
     employeeId: employees[0]?.id || '',
     paymentMethod: 'PIX',
   });
@@ -38,17 +38,18 @@ export const InventoryDashboard = () => {
   };
 
   const handleAddMovement = () => {
-    if (movementForm.productId && movementForm.quantity !== 0) {
-      const { paymentMethod, ...movementData } = movementForm;
-      addMovement(movementData);
+    const quantity = parseInt(movementForm.quantity) || 0;
+    if (movementForm.productId && quantity !== 0) {
+      const { paymentMethod, quantity: _, ...movementData } = movementForm;
+      addMovement({ ...movementData, quantity });
 
       if (movementForm.type === 'sale') {
         const product = products.find(p => p.id === movementForm.productId);
         if (product) {
-          const totalValue = product.sellingPrice * movementForm.quantity;
+          const totalValue = product.sellingPrice * quantity;
           addRecord({
             date: movementForm.date,
-            description: `Venda - ${product.name} (x${movementForm.quantity})`,
+            description: `Venda - ${product.name} (x${quantity})`,
             value: totalValue,
             product: product.name,
             paymentMethod: movementForm.paymentMethod,
@@ -60,7 +61,7 @@ export const InventoryDashboard = () => {
         productId: '',
         date: new Date().toISOString().split('T')[0],
         type: 'purchase',
-        quantity: 0,
+        quantity: '',
         employeeId: employees[0]?.id || '',
         paymentMethod: 'PIX',
       });
@@ -242,20 +243,21 @@ export const InventoryDashboard = () => {
               </select>
             </div>
             <Input label="Quantidade" type="number" value={movementForm.quantity}
-              onChange={(e) => setMovementForm({ ...movementForm, quantity: parseInt(e.target.value) || 0 })} />
+              onChange={(e) => setMovementForm({ ...movementForm, quantity: e.target.value })} />
           </div>
 
           {movementForm.type === 'sale' && (
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-xs font-semibold text-blue-700 mb-1">💡 Venda detectada — será lançada automaticamente no financeiro</p>
-              {movementForm.productId && movementForm.quantity > 0 && (() => {
+              {movementForm.productId && parseInt(movementForm.quantity) > 0 && (() => {
                 const product = products.find(p => p.id === movementForm.productId);
                 if (!product) return null;
-                const total = product.sellingPrice * movementForm.quantity;
+                const qty = parseInt(movementForm.quantity) || 0;
+                const total = product.sellingPrice * qty;
                 return (
                   <p className="text-sm text-blue-600">
                     Valor a registrar: <strong>R$ {total.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>
-                    &nbsp;({movementForm.quantity}x R$ {product.sellingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})
+                    &nbsp;({qty}x R$ {product.sellingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })})
                   </p>
                 );
               })()}
