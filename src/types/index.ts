@@ -21,6 +21,7 @@ export interface Product {
   name: string;
   cost: number;
   sellingPrice: number;
+  stock: number;
 }
 
 export type MovementType = 'purchase' | 'sale' | 'return' | 'adjustment';

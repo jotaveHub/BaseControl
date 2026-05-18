@@ -12,7 +12,7 @@ export const InventoryDashboard = () => {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isMovementModalOpen, setIsMovementModalOpen] = useState(false);
 
-  const [productForm, setProductForm] = useState({ code: '', name: '', cost: 0, sellingPrice: 0 });
+  const [productForm, setProductForm] = useState({ code: '', name: '', cost: '', sellingPrice: '' });
   const [movementForm, setMovementForm] = useState({
     productId: '',
     date: new Date().toISOString().split('T')[0],
@@ -24,8 +24,15 @@ export const InventoryDashboard = () => {
 
   const handleAddProduct = () => {
     if (productForm.name && productForm.code) {
-      addProduct(productForm);
-      setProductForm({ code: '', name: '', cost: 0, sellingPrice: 0 });
+      const cost = Math.max(0, parseFloat(productForm.cost) || 0);
+      const sellingPrice = Math.max(0, parseFloat(productForm.sellingPrice) || 0);
+
+      addProduct({
+        ...productForm,
+        cost,
+        sellingPrice
+      });
+      setProductForm({ code: '', name: '', cost: '', sellingPrice: '' });
       setIsProductModalOpen(false);
     }
   };
@@ -104,6 +111,7 @@ export const InventoryDashboard = () => {
                 <tr>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Código</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Nome</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-center">Estoque</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Custo (R$)</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-right">Venda (R$)</th>
                   <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider text-center">Ações</th>
@@ -114,6 +122,7 @@ export const InventoryDashboard = () => {
                   <tr key={p.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 text-sm font-mono text-gray-600">{p.code}</td>
                     <td className="px-6 py-4 text-sm font-medium text-gray-800">{p.name}</td>
+                    <td className="px-6 py-4 text-sm text-center font-bold text-gray-800">{p.stock}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">R$ {p.cost.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td className="px-6 py-4 text-sm font-bold text-right text-green-600">R$ {p.sellingPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
                     <td className="px-6 py-4 text-center">
@@ -189,10 +198,10 @@ export const InventoryDashboard = () => {
               onChange={(e) => setProductForm({ ...productForm, name: e.target.value })} />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <Input label="Valor de Custo (R$)" type="number" value={productForm.cost}
-              onChange={(e) => setProductForm({ ...productForm, cost: parseFloat(e.target.value) || 0 })} />
-            <Input label="Preço de Venda (R$)" type="number" value={productForm.sellingPrice}
-              onChange={(e) => setProductForm({ ...productForm, sellingPrice: parseFloat(e.target.value) || 0 })} />
+            <Input label="Valor de Custo (R$)" type="number" min="0" value={productForm.cost}
+              onChange={(e) => setProductForm({ ...productForm, cost: e.target.value })} />
+            <Input label="Preço de Venda (R$)" type="number" min="0" value={productForm.sellingPrice}
+              onChange={(e) => setProductForm({ ...productForm, sellingPrice: e.target.value })} />
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="secondary" onClick={() => setIsProductModalOpen(false)}>Cancelar</Button>
