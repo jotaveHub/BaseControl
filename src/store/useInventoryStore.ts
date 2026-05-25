@@ -27,7 +27,7 @@ export const useInventoryStore = create<InventoryState>((set) => ({
     { id: 'e2', name: 'Maria Souza', role: 'Gerente de Estoque' },
   ],
   addProduct: (product) => set((state) => ({
-    products: [...state.products, { ...product, id: crypto.randomUUID(), stock: 0 }]
+    products: [...state.products, { ...product, id: crypto.randomUUID() }]
   })),
   deleteProduct: (id) => set((state) => ({
     products: state.products.filter(p => p.id !== id)

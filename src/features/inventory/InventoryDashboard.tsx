@@ -12,7 +12,7 @@ export const InventoryDashboard = () => {
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isMovementModalOpen, setIsMovementModalOpen] = useState(false);
 
-  const [productForm, setProductForm] = useState({ code: '', name: '', cost: '', sellingPrice: '' });
+  const [productForm, setProductForm] = useState({ code: '', name: '', cost: '', sellingPrice: '', stock: '' });
   const [movementForm, setMovementForm] = useState({
     productId: '',
     date: new Date().toISOString().split('T')[0],
@@ -26,13 +26,15 @@ export const InventoryDashboard = () => {
     if (productForm.name && productForm.code) {
       const cost = Math.max(0, parseFloat(productForm.cost) || 0);
       const sellingPrice = Math.max(0, parseFloat(productForm.sellingPrice) || 0);
+      const stock = Math.max(0, parseInt(productForm.stock) || 0);
 
       addProduct({
         ...productForm,
         cost,
-        sellingPrice
+        sellingPrice,
+        stock
       });
-      setProductForm({ code: '', name: '', cost: '', sellingPrice: '' });
+      setProductForm({ code: '', name: '', cost: '', sellingPrice: '', stock: '' });
       setIsProductModalOpen(false);
     }
   };
@@ -228,6 +230,10 @@ export const InventoryDashboard = () => {
               onChange={(e) => setProductForm({ ...productForm, cost: e.target.value })} />
             <Input label="Preço de Venda (R$)" type="number" min="0" value={productForm.sellingPrice}
               onChange={(e) => setProductForm({ ...productForm, sellingPrice: e.target.value })} />
+          </div>
+          <div className="grid grid-cols-1 gap-4">
+            <Input label="Estoque Inicial" type="number" min="0" value={productForm.stock}
+              onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })} />
           </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button variant="secondary" onClick={() => setIsProductModalOpen(false)}>Cancelar</Button>
