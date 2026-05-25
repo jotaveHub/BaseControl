@@ -15,8 +15,8 @@ interface InventoryState {
 
 export const useInventoryStore = create<InventoryState>((set) => ({
   products: [
-    { id: '1', code: 'PROD001', name: 'Teclado Mecânico', cost: 100.00, sellingPrice: 200.00 },
-    { id: '2', code: 'PROD002', name: 'Mouse Gamer', cost: 50.00, sellingPrice: 120.00 },
+    { id: '1', code: 'PROD001', name: 'Teclado Mecânico', cost: 100.00, sellingPrice: 200.00, stock: 8 },
+    { id: '2', code: 'PROD002', name: 'Mouse Gamer', cost: 50.00, sellingPrice: 120.00, stock: 0 },
   ],
   movements: [
     { id: '1', productId: '1', date: '2026-05-01', type: 'purchase', quantity: 10, employeeId: 'e1' },
