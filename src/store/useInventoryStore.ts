@@ -38,8 +38,10 @@ export const useInventoryStore = create<InventoryState>((set) => ({
     if (type === 'purchase' || type === 'return') stockChange = quantity;
     else if (type === 'sale' || type === 'adjustment') stockChange = -quantity;
 
+    const newMovement = { ...movement, id: (movement as any).id || crypto.randomUUID() };
+
     return {
-      movements: [...state.movements, { ...movement, id: crypto.randomUUID() }],
+      movements: [...state.movements, newMovement],
       products: state.products.map(p =>
         p.id === productId ? { ...p, stock: p.stock + stockChange } : p
       )

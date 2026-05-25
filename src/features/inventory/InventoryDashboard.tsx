@@ -7,7 +7,7 @@ import { MovementType } from '../../types';
 
 export const InventoryDashboard = () => {
   const { products, movements, employees, addProduct, deleteProduct, addMovement, deleteMovement } = useInventoryStore();
-  const { addRecord } = useFinanceStore();
+  const { addRecord, deleteRecord } = useFinanceStore();
   const [activeTab, setActiveTab] = useState<'products' | 'movements'>('products');
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isMovementModalOpen, setIsMovementModalOpen] = useState(false);
@@ -41,11 +41,13 @@ export const InventoryDashboard = () => {
     const quantity = parseInt(movementForm.quantity) || 0;
     if (movementForm.productId && quantity !== 0) {
       const { paymentMethod, quantity: _, ...movementData } = movementForm;
-      addMovement({ ...movementData, quantity });
 
-      if (movementForm.type === 'sale') {
-        const product = products.find(p => p.id === movementForm.productId);
-        if (product) {
+      const movementId = crypto.randomUUID();
+      addMovement({ ...movementData, quantity, id: movementId as any });
+
+      const product = products.find(p => p.id === movementForm.productId);
+      if (product) {
+        if (movementForm.type === 'sale') {
           const totalValue = product.sellingPrice * quantity;
           addRecord({
             date: movementForm.date,
@@ -53,6 +55,17 @@ export const InventoryDashboard = () => {
             value: totalValue,
             product: product.name,
             paymentMethod: movementForm.paymentMethod,
+            movementId: movementId,
+          });
+        } else if (movementForm.type === 'purchase') {
+          const totalValue = product.cost * quantity;
+          addRecord({
+            date: movementForm.date,
+            description: `Compra - ${product.name} (x${quantity})`,
+            value: totalValue,
+            product: product.name,
+            paymentMethod: 'A definir',
+            movementId: movementId,
           });
         }
       }
@@ -67,6 +80,18 @@ export const InventoryDashboard = () => {
       });
       setIsMovementModalOpen(false);
     }
+  };
+
+  const handleDeleteMovement = (movementId: string) => {
+    const movement = movements.find(m => m.id === movementId);
+    if (movement && (movement.type === 'sale' || movement.type === 'purchase')) {
+      const { records } = useFinanceStore.getState();
+      const record = records.find(r => r.movementId === movementId);
+      if (record) {
+        deleteRecord(record.id);
+      }
+    }
+    deleteMovement(movementId);
   };
 
   return (
@@ -178,7 +203,7 @@ export const InventoryDashboard = () => {
                       {employees.find(e => e.id === m.employeeId)?.name || 'N/A'}
                     </td>
                     <td className="px-6 py-4 text-center">
-                      <button onClick={() => deleteMovement(m.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                      <button onClick={() => handleDeleteMovement(m.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors">
                         <Trash2 size={16} />
                       </button>
                     </td>
