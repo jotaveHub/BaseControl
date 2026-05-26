@@ -13,6 +13,7 @@ export interface FinanceRecord {
   value: number;
   product: string;
   paymentMethod: string;
+  movementId?: string;
 }
 
 export interface Product {

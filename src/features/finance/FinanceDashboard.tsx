@@ -1,5 +1,8 @@
 import React from 'react';
 import { useFinanceStore } from '../../store/useFinanceStore';
+
+import { Button, Input, Card, Modal } from '../../components/ui';
+import { Plus, Trash2, DollarSign, TrendingUp } from 'lucide-react';
 import { Button, Card } from '../../components/ui';
 import { Trash2, DollarSign } from 'lucide-react';
 import { FinanceRecord } from '../../types';
@@ -8,6 +11,32 @@ export const FinanceDashboard = () => {
   const { records, deleteRecord } = useFinanceStore();
 
   const totalValue = records.reduce((acc, rec) => acc + rec.value, 0);
+
+
+  const revenue30Days = records.reduce((acc, rec) => {
+    const recordDate = new Date(rec.date);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    if (rec.value > 0 && recordDate >= thirtyDaysAgo) {
+      return acc + rec.value;
+    }
+    return acc;
+  }, 0);
+
+  const handleAddRecord = () => {
+    if (formState.description && formState.value !== 0) {
+      addRecord(formState);
+      setFormState({
+        date: new Date().toISOString().split('T')[0],
+        description: '',
+        value: 0,
+        product: '',
+        paymentMethod: '',
+      });
+      setIsModalOpen(false);
+    }
+  };
 
   return (
     <div className="h-full flex flex-col gap-6">
@@ -27,6 +56,18 @@ export const FinanceDashboard = () => {
             <p className="text-sm text-gray-500">Total Acumulado</p>
             <p className="text-2xl font-bold text-gray-800">
               R$ {totalValue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            </p>
+          </div>
+        </Card>
+
+        <Card className="flex items-center gap-4 p-6">
+          <div className="p-3 bg-green-100 text-green-600 rounded-full">
+            <TrendingUp size={24} />
+          </div>
+          <div>
+            <p className="text-sm text-gray-500">Faturamento (30 dias)</p>
+            <p className="text-2xl font-bold text-gray-800">
+              R$ {revenue30Days.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
             </p>
           </div>
         </Card>
