@@ -17,17 +17,6 @@ export const FinanceDashboard = () => {
 
   const totalValue = records.reduce((acc, rec) => acc + rec.value, 0);
 
-  const revenue30Days = records.reduce((acc, rec) => {
-    const recordDate = new Date(rec.date);
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    if (rec.value > 0 && recordDate >= thirtyDaysAgo) {
-      return acc + rec.value;
-    }
-    return acc;
-  }, 0);
-
   const handleAddRecord = () => {
     if (formState.description && formState.value !== 0) {
       addRecord(formState);
@@ -42,6 +31,17 @@ export const FinanceDashboard = () => {
     }
   };
 
+  const revenue30Days = records.reduce((acc, rec) => {
+    const recordDate = new Date(rec.date);
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    if (rec.value > 0 && recordDate >= thirtyDaysAgo) {
+      return acc + rec.value;
+    }
+    return acc;
+  }, 0);
+
   return (
     <div className="h-full flex flex-col gap-6">
       <div className="flex justify-between items-center">
@@ -49,11 +49,16 @@ export const FinanceDashboard = () => {
           <h1 className="text-2xl font-bold text-gray-800">Controle Financeiro</h1>
           <p className="text-gray-500">Gerencie suas entradas e saídas financeiras.</p>
         </div>
+<<<<<<< HEAD
+        <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2">
+          <Plus size={18} /> Novo Registro
+        </Button>
+=======
+>>>>>>> 0c91d09 (fix(inventory/finance): registrar compras como despesa, normalizar valores e garantir entradas nas vendas)
         <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2">
           <Plus size={18} /> Novo Registro
         </Button>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="flex items-center gap-4 p-6">
           <div className="p-3 bg-blue-100 text-blue-600 rounded-full">

@@ -21,7 +21,13 @@ export const useInventoryStore = create<InventoryState>()(
       movements: [],
       employees: [],
       addProduct: (product) => set((state) => ({
-        products: [...state.products, { ...product, id: crypto.randomUUID() }]
+        products: [...state.products, { 
+          ...product,
+          cost: Number((product as any).cost) || 0,
+          sellingPrice: Number((product as any).sellingPrice) || 0,
+          stock: Number((product as any).stock) || 0,
+          id: crypto.randomUUID()
+        }]
       })),
       deleteProduct: (id) => set((state) => ({
         products: state.products.filter(p => p.id !== id)

@@ -50,7 +50,8 @@ export const InventoryDashboard = () => {
       const product = products.find(p => p.id === movementForm.productId);
       if (product) {
         if (movementForm.type === 'sale') {
-          const totalValue = product.sellingPrice * quantity;
+          const sellingPrice = Number(product.sellingPrice) || 0;
+          const totalValue = sellingPrice * quantity;
           addRecord({
             date: movementForm.date,
             description: `Venda - ${product.name} (x${quantity})`,
@@ -60,11 +61,12 @@ export const InventoryDashboard = () => {
             movementId: movementId,
           });
         } else if (movementForm.type === 'purchase') {
-          const totalValue = product.cost * quantity;
+          const cost = Number(product.cost) || 0;
+          const totalValue = cost * quantity;
           addRecord({
             date: movementForm.date,
             description: `Compra - ${product.name} (x${quantity})`,
-            value: totalValue,
+            value: -totalValue,
             product: product.name,
             paymentMethod: 'A definir',
             movementId: movementId,
