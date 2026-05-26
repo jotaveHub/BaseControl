@@ -1,21 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useFinanceStore } from '../../store/useFinanceStore';
+
 import { Button, Input, Card, Modal } from '../../components/ui';
 import { Plus, Trash2, DollarSign, TrendingUp } from 'lucide-react';
+import { Button, Card } from '../../components/ui';
+import { Trash2, DollarSign } from 'lucide-react';
 import { FinanceRecord } from '../../types';
 
 export const FinanceDashboard = () => {
-  const { records, addRecord, deleteRecord } = useFinanceStore();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formState, setFormState] = useState({
-    date: new Date().toISOString().split('T')[0],
-    description: '',
-    value: 0,
-    product: '',
-    paymentMethod: '',
-  });
+  const { records, deleteRecord } = useFinanceStore();
 
   const totalValue = records.reduce((acc, rec) => acc + rec.value, 0);
+
 
   const revenue30Days = records.reduce((acc, rec) => {
     const recordDate = new Date(rec.date);
@@ -48,10 +44,7 @@ export const FinanceDashboard = () => {
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Controle Financeiro</h1>
           <p className="text-gray-500">Gerencie suas entradas e saídas financeiras.</p>
-        </div>
-        <Button onClick={() => setIsModalOpen(true)} className="flex items-center gap-2">
-          <Plus size={18} /> Novo Registro
-        </Button>
+        </div_
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -120,55 +113,6 @@ export const FinanceDashboard = () => {
           </tbody>
         </table>
       </Card>
-
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Novo Registro Financeiro"
-      >
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Data"
-              type="date"
-              value={formState.date}
-              onChange={(e) => setFormState({ ...formState, date: e.target.value })}
-            />
-            <Input
-              label="Valor (R$)"
-              type="number"
-              value={formState.value}
-              onChange={(e) => setFormState({ ...formState, value: parseFloat(e.target.value) || 0 })}
-            />
-          </div>
-          <Input
-            label="Descrição"
-            placeholder="Ex: Compra de insumos..."
-            value={formState.description}
-            onChange={(e) => setFormState({ ...formState, description: e.target.value })}
-          />
-          <Input
-            label="Produto"
-            placeholder="Ex: Teclado, Mouse..."
-            value={formState.product}
-            onChange={(e) => setFormState({ ...formState, product: e.target.value })}
-          />
-          <Input
-            label="Método de Pagamento"
-            placeholder="Ex: PIX, Cartão, Boleto..."
-            value={formState.paymentMethod}
-            onChange={(e) => setFormState({ ...formState, paymentMethod: e.target.value })}
-          />
-          <div className="flex justify-end gap-3 pt-4">
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
-              Cancelar
-            </Button>
-            <Button onClick={handleAddRecord}>
-              Salvar Registro
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };
