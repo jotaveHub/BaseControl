@@ -140,7 +140,7 @@ export const FinanceDashboard = () => {
               value={formState.value}
               onChange={(e) => setFormState({ ...formState, value: parseFloat(e.target.value) || 0 })}
             />
-          </div_
+          </div>
           <Input
             label="Descrição"
             placeholder="Ex: Compra de insumos..."
